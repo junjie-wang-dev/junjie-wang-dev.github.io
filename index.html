@@ -369,6 +369,11 @@
         border-bottom: 1px solid var(--line);
         padding: 26px 0 28px;
       }
+      .project-card::after {
+        clear: both;
+        content: "";
+        display: table;
+      }
       .project-heading {
         display: flex;
         align-items: start;
@@ -390,9 +395,9 @@
         margin-bottom: 12px;
       }
       .project-features {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 7px 28px;
-        margin: 18px 0 22px;
+        grid-template-columns: 1fr;
+        gap: 7px;
+        margin: 18px 0 0;
         display: grid;
       }
       .project-features li {
@@ -406,11 +411,12 @@
         left: 0;
       }
       .project-figure {
-        margin: 0;
+        float: left;
+        width: min(58%, 580px);
+        margin: 2px 28px 16px 0;
       }
       .project-image {
-        background: #000;
-        border: 1px solid #aaa;
+        background: #fff;
         width: 100%;
         height: auto;
         display: block;
@@ -509,6 +515,11 @@
         }
         .project-features {
           grid-template-columns: 1fr;
+        }
+        .project-figure {
+          float: none;
+          width: 100%;
+          margin: 0 0 18px;
         }
       }
       @media (max-width: 460px) {
@@ -615,29 +626,12 @@
           <header class="project-heading">
             <div>
               <h3>Refora</h3>
-              <p class="project-tagline">A local-first AI research workspace for macOS</p>
+              <p class="project-tagline">
+                An AI research agent for literature discovery and synthesis
+              </p>
             </div>
             <a href="https://github.com/junjie-wang-dev/Refora">[GitHub]</a>
           </header>
-          <p class="project-description">
-            Refora is a personal project that rethinks the literature manager as an active research
-            environment. It brings PDF organization, reading, notes, files, and AI-assisted inquiry
-            into one desktop application while keeping the research library and workspace data
-            local by default.
-          </p>
-          <p class="project-description">
-            Papers and supporting material can be arranged as connected cards on a visual canvas,
-            making it easier to externalize relationships between ideas. A workspace-aware research
-            agent can inspect this context, search papers and conversations, retrieve summaries or
-            full text, compare methods, explore related literature, and turn the collected evidence
-            into structured research reports.
-          </p>
-          <ul class="project-features">
-            <li><strong>Local-first library:</strong> organize, read, search, and annotate PDFs.</li>
-            <li><strong>Visual workspaces:</strong> connect papers, notes, files, and reports.</li>
-            <li><strong>Research agent:</strong> synthesize workspace evidence with visible progress.</li>
-            <li><strong>Flexible AI:</strong> use configurable cloud providers or local models.</li>
-          </ul>
           <figure class="project-figure">
             <a href="https://github.com/junjie-wang-dev/Refora">
               <img
@@ -650,10 +644,28 @@
               />
             </a>
             <figcaption>
-              Refora combines a literature library, a visual knowledge workspace, and an
-              evidence-aware research agent.
+              A workspace-aware research agent working across papers, notes, and connected evidence.
             </figcaption>
           </figure>
+          <p class="project-description">
+            Refora is my personal AI research agent project for turning collections of papers into
+            an active research environment. Instead of treating AI as a separate chat window, it
+            grounds the agent in the user's literature library and visual workspace, allowing it to
+            work directly with selected papers, notes, files, and the relationships between them.
+          </p>
+          <p class="project-description">
+            Within a workspace, the agent can inspect context, search papers and conversations,
+            retrieve summaries or full text, compare methods, trace citations, discover related
+            literature, and synthesize the collected evidence into structured research reports. Its
+            progress and retrieved materials remain visible beside a canvas where research content
+            can be arranged and connected.
+          </p>
+          <ul class="project-features">
+            <li><strong>Context-aware agent:</strong> reasons across the active research workspace.</li>
+            <li><strong>Evidence synthesis:</strong> compares papers and produces structured reports.</li>
+            <li><strong>Literature discovery:</strong> explores citations and related research.</li>
+            <li><strong>Visual workspace:</strong> connects papers, notes, files, and agent outputs.</li>
+          </ul>
         </article>
       </section>
       <section class="publications-section" aria-labelledby="publications-title">
