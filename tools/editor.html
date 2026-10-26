@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <base href="/" />
+    <title>主页内容编辑器</title>
+    <link rel="stylesheet" href="/editor.css" />
+    <script src="/editor.js" defer></script>
+  </head>
+  <body data-view="editor">
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">✎</span>
+        <div><h1>主页内容编辑器</h1><p>把想表达的内容，写进你的主页。</p></div>
+      </div>
+      <div class="header-actions">
+        <span id="save-status" class="save-status" role="status">正在连接…</span>
+        <a class="button quiet home-link" href="/" target="_blank" rel="noopener">打开主页 ↗</a>
+        <button id="show-preview" class="button secondary mobile-only" type="button">查看预览</button>
+        <button id="save-button" class="button primary" type="button" disabled>保存修改 <span class="key-hint">⌘ / Ctrl S</span></button>
+      </div>
+    </header>
+    <div id="feedback" class="notice" role="status" aria-live="polite" hidden></div>
+    <main class="workspace">
+      <aside class="sidebar" aria-label="编辑分区">
+        <p class="sidebar-label">内容管理</p>
+        <nav id="section-nav" class="section-nav"></nav>
+        <div class="sidebar-foot">
+          <span class="local-indicator">本地编辑</span>
+          <p>保存后更新本地首页。<br />发布时，按原方式提交并推送 GitHub。</p>
+          <button id="export-draft" class="text-button" type="button" disabled>导出内容备份 ↓</button>
+        </div>
+      </aside>
+      <section class="editor-pane" aria-labelledby="section-title">
+        <div class="pane-intro"><p id="section-eyebrow" class="eyebrow">YOUR HOMEPAGE</p><h2 id="section-title">正在读取内容</h2><p id="section-description">稍等，马上就可以开始编辑。</p></div>
+        <form id="content-form" class="content-form" autocomplete="off" aria-busy="true"></form>
+        <div class="editor-foot"><span>修改自动预览，点击「保存修改」后写入文件。</span><span id="field-count"></span></div>
+      </section>
+      <section class="preview-pane" aria-label="主页实时预览">
+        <div class="preview-toolbar">
+          <div class="preview-label"><button id="back-to-editor" class="text-button mobile-only" type="button">← 编辑</button><span class="preview-dot" aria-hidden="true"></span><strong>实时预览</strong><span id="preview-status" role="status">等待内容</span></div>
+          <div class="preview-actions"><div class="view-switch" role="group" aria-label="预览尺寸"><button type="button" data-preview-mode="desktop" aria-pressed="true">桌面</button><button type="button" data-preview-mode="mobile" aria-pressed="false">手机</button></div><button id="refresh-preview" class="icon-button" type="button" title="刷新预览" aria-label="刷新预览" disabled>↻</button></div>
+        </div>
+        <div class="preview-address"><span aria-hidden="true">⌂</span><span>你的主页 /</span><span class="preview-badge">当前草稿</span></div>
+        <div id="preview-viewport" class="preview-viewport" data-mode="desktop"><iframe id="preview-frame" title="主页预览（包含尚未保存的修改）" sandbox="allow-same-origin"></iframe></div>
+        <p class="preview-foot">预览中的链接不会跳转 · 查看链接效果请打开主页</p>
+      </section>
+    </main>
+    <noscript>此编辑器需要启用 JavaScript。公开主页不依赖此编辑器。</noscript>
+  </body>
+</html>
