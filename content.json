@@ -4,12 +4,12 @@
     "description": "Academic homepage of Junjie Wang — autonomous driving, cooperative perception, 3D perception, vision-language-action models, and AI agents.",
     "socialTitle": "Junjie Wang — Academic Homepage",
     "socialDescription": "Research in autonomous driving, cooperative perception, 3D perception, vision-language-action models, and AI agents.",
-    "socialImage": "https://jessewong333.github.io/og-minimal.png",
-    "twitterDescription": "Autonomous Driving · Cooperative Perception · 3D Perception · AI Agents"
+    "twitterDescription": "Autonomous Driving · Cooperative Perception · 3D Perception · AI Agents",
+    "socialImage": "https://jessewong333.github.io/og-minimal.png"
   },
   "profile": {
     "name": "Junjie Wang",
-    "role": "Researcher in autonomous driving, cooperative perception, and AI agents.",
+    "role": "Researcher in autonomous driving, cooperative perception",
     "affiliation": "Ph.D. · Umeå University · Intelligent Autonomous Systems",
     "image": {
       "src": "images/profile.jpg",
@@ -29,6 +29,10 @@
     ],
     "links": [
       {
+        "label": "Google Scholar",
+        "url": "https://scholar.google.com/citations?user=HgEezt8AAAAJ&hl=en&oi=ao"
+      },
+      {
         "label": "GitHub",
         "url": "https://github.com/junjie-wang-dev"
       }
@@ -37,9 +41,9 @@
   "bio": {
     "title": "Brief Bio",
     "paragraphs": [
-      "I completed my Ph.D. at Umeå University as a member of the <a href=\"https://www.umu.se/en/research/groups/cooperative-and-intelligent-embedded-systems/\">Cooperative and Intelligent Embedded Systems</a> research group. My doctoral work focused on robust, efficient, and scalable cooperative perception systems for autonomous vehicles.",
-      "<strong>Research interests:</strong> autonomous driving; cooperative perception; 3D perception; and vision-language-action models for autonomous vehicles.",
-      "I am also interested in AI agents and explore agent design through personal projects, including <a href=\"https://github.com/junjie-wang-dev/Refora\">Refora</a>."
+      "I completed my Ph.D. at Umeå University as a member of the <a href=\"https://www.umu.se/en/research/groups/cooperative-and-intelligent-embedded-systems/\">Cooperative and Intelligent Embedded Systems</a> research group. My doctoral work focused on robust, efficient, and scalable cooperative perception systems for autonomous vehicles. ",
+      "Before pursuing my Ph.D., I spent several years in industry as a machine learning engineer, working on projects involving training computer vision (CV) and natural language processing (NLP) models, as well as model quantization and deployment. (That was a long story from the pre-LLM era.)<br>The rise of LLMs has changed a lot in the field. These days, my main interests lie in autonomous vehicles, robotics, and efficient inference.",
+      "<strong>Research interests:</strong> autonomous driving; and vision-language-action models for autonomous vehicles; efficient inference."
     ]
   },
   "projects": {
@@ -48,29 +52,23 @@
       {
         "title": "Refora",
         "tagline": "Refora is an AI-native research workspace for Apple Silicon Macs. It brings papers, annotations, evidence maps, notes, and a research agent into one continuous loop—from understanding a passage to tracing a research frontier, developing hypotheses, and turning insight into durable work.",
-        "links": [
-          {
-            "label": "[GitHub]",
-            "url": "https://github.com/junjie-wang-dev/Refora"
-          }
+        "caption": "",
+        "imageUrl": "https://github.com/junjie-wang-dev/Refora",
+        "paragraphs": [
+          "And, of course, this project also owes a little something to Tibo's Codex usage limit reset."
         ],
+        "features": [],
         "image": {
           "src": "images/projects/refora-workspace.png",
           "alt": "Refora interface showing a PDF library, a connected visual research workspace, and an AI agent generating a research report",
           "width": 1800,
           "height": 1061
         },
-        "imageUrl": "https://github.com/junjie-wang-dev/Refora",
-        "caption": "A workspace-aware research agent working across papers, notes, and connected evidence.",
-        "paragraphs": [
-          "Refora is my personal vibe coding project for turning collections of papers into an active research environment. Instead of treating AI as a separate chat window, it grounds the agent in the user's literature library and visual workspace, allowing it to work directly with selected papers, notes, files, and the relationships between them.",
-          "Within a workspace, the agent can inspect context, search papers and conversations, retrieve summaries or full text, compare methods, trace citations, discover related literature, and synthesize the collected evidence into structured research reports. Its progress and retrieved materials remain visible beside a canvas where research content can be arranged and connected."
-        ],
-        "features": [
-          "<strong>Context-aware agent:</strong> reasons across the active research workspace.",
-          "<strong>Evidence synthesis:</strong> compares papers and produces structured reports.",
-          "<strong>Literature discovery:</strong> explores citations and related research.",
-          "<strong>Visual workspace:</strong> connects papers, notes, files, and agent outputs."
+        "links": [
+          {
+            "label": "[GitHub]",
+            "url": "https://github.com/junjie-wang-dev/Refora"
+          }
         ]
       }
     ]
@@ -80,9 +78,9 @@
     "items": [
       {
         "title": "Cooperative Perception for Next-Generation Autonomous Vehicles",
-        "authors": "Junjie Wang",
         "venue": "Doctoral dissertation, Umeå University, 2026",
         "description": "Develops unified cooperative perception frameworks for realistic multi-agent systems, addressing model heterogeneity, temporal latency, and limited communication bandwidth.",
+        "authors": "Junjie Wang",
         "image": {
           "src": "images/publications/phd-thesis.png",
           "alt": "Overview connecting the thesis research objectives, four included papers, and their synthesis",
@@ -98,9 +96,9 @@
       },
       {
         "title": "Communication Efficient Cooperative Perception via Codebook-Free Vector Quantization",
-        "authors": "<strong>Junjie Wang</strong>, Zeyu Gao, Tomas Nordström",
         "venue": "IEEE Access, 2026",
         "description": "A lightweight codebook-free quantization framework that compresses shared BEV features into low-bit integer codes while retaining competitive detection accuracy.",
+        "authors": "<strong>Junjie Wang</strong>, Zeyu Gao, Tomas Nordström",
         "image": {
           "src": "images/publications/cfq4cp.png",
           "alt": "Conceptual cooperative perception network connecting a road-side unit and autonomous vehicles",
@@ -120,9 +118,9 @@
       },
       {
         "title": "Towards Model-Agnostic Cooperative Perception",
-        "authors": "<strong>Junjie Wang</strong>, Tomas Nordström",
         "venue": "International Joint Conference on Neural Networks (IJCNN), 2025",
         "description": "Enables intermediate cooperative perception across independently trained, heterogeneous agent models using lightweight feature adaptation and deformable attention.",
+        "authors": "<strong>Junjie Wang</strong>, Tomas Nordström",
         "image": {
           "src": "images/publications/imcp.png",
           "alt": "Comparison of single-agent, jointly trained, and model-agnostic cooperative perception",
@@ -146,9 +144,9 @@
       },
       {
         "title": "Latency Robust Cooperative Perception Using Asynchronous Feature Fusion",
-        "authors": "<strong>Junjie Wang</strong>, Tomas Nordström",
         "venue": "IEEE/CVF Winter Conference on Applications of Computer Vision (WACV), 2025",
         "description": "Directly fuses asynchronous BEV features and predicts non-discrete scene flow from cached history to remain robust under communication latency.",
+        "authors": "<strong>Junjie Wang</strong>, Tomas Nordström",
         "image": {
           "src": "images/publications/lrcp.png",
           "alt": "Cooperative detection under 300 millisecond latency, with and without LRCP compensation",
@@ -172,9 +170,9 @@
       },
       {
         "title": "InputMix: A Strategy to Regularize and Balance Multi-Modality and Multi-View Model Learning",
-        "authors": "<strong>Junjie Wang</strong>, Tomas Nordström",
         "venue": "IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2024",
         "description": "Regularizes multi-input networks and balances modality or view contributions by mixing input pairs and training against weighted soft targets.",
+        "authors": "<strong>Junjie Wang</strong>, Tomas Nordström",
         "image": {
           "src": "images/publications/inputmix.png",
           "alt": "Attribution maps comparing baseline fusion with InputMix on RGB and depth inputs",
@@ -203,9 +201,9 @@
     "items": [
       {
         "title": "An Online Semi-Supervised P300 Speller Based on Extreme Learning Machine",
-        "authors": "<strong>Junjie Wang</strong>, Zhenghui Gu, Zhuliang Yu, Yuanqing Li",
         "venue": "Neurocomputing, volume 269, pages 148–151, 2017",
         "description": "An online self-training P300 speller that uses a regularized weighted sequential extreme learning machine to reduce calibration time and computational cost while maintaining spelling accuracy.",
+        "authors": "<strong>Junjie Wang</strong>, Zhenghui Gu, Zhuliang Yu, Yuanqing Li",
         "image": {
           "src": "images/publications/p300-speller.png",
           "alt": "Graphical user interface of the in-house P300 speller",
@@ -222,6 +220,6 @@
     ]
   },
   "footer": {
-    "text": "Last updated: July 2026 · Built with GitHub Pages"
+    "text": "Last updated: oct 2026"
   }
 }
