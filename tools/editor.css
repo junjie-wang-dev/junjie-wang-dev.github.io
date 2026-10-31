@@ -10,12 +10,12 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; font-size: 14px; }
-button, input, textarea { font: inherit; }
-button, a, input, textarea, [contenteditable] { -webkit-tap-highlight-color: transparent; }
+button, input, textarea, select { font: inherit; }
+button, a, input, textarea, select, [contenteditable] { -webkit-tap-highlight-color: transparent; }
 button, a { touch-action: manipulation; }
 button { cursor: pointer; }
 button:disabled { cursor: default; opacity: .45; }
-button, input, textarea { color: inherit; }
+button, input, textarea, select { color: inherit; }
 button:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid #9dc9b6; outline-offset: 3px; }
 [hidden] { display: none !important; }
 .app-header { min-height: 87px; padding: 17px 27px; background: #fff; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-shrink: 0; }
@@ -59,11 +59,16 @@ button:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px soli
 .editor-foot { flex-shrink: 0; padding: 12px 18px; border-top: 1px solid #edf0ec; color: #8b958d; font-size: 10px; display: flex; justify-content: space-between; gap: 10px; line-height: 1.5; }
 .field { display: block; margin: 0 0 20px; min-width: 0; }
 .field-label { display: block; margin: 0 0 8px; font-size: 11px; font-weight: 600; color: #4d5b51; }
-.field input, .field textarea { display: block; width: 100%; min-width: 0; border: 1px solid #dce3dd; background: #fff; border-radius: 6px; padding: 10px 11px; line-height: 1.6; font-size: 12px; outline: none; transition: border-color .15s, box-shadow .15s; }
+.field input, .field textarea, .field select { display: block; width: 100%; min-width: 0; border: 1px solid #dce3dd; background: #fff; border-radius: 6px; padding: 10px 11px; line-height: 1.6; font-size: 12px; outline: none; transition: border-color .15s, box-shadow .15s; }
 .field textarea { resize: vertical; min-height: 89px; }
-.field input:focus, .field textarea:focus, .rich-editor:focus { border-color: #76a28b; box-shadow: 0 0 0 3px #eaf2eb; }
+.field input:focus, .field textarea:focus, .field select:focus, .rich-editor:focus { border-color: #76a28b; box-shadow: 0 0 0 3px #eaf2eb; }
 .field input::placeholder, .field textarea::placeholder { color: #aab2aa; }
 .field-hint { display: block; margin-top: 7px; color: #929c93; line-height: 1.6; font-size: 10px; font-weight: 400; }
+.social-platform-controls { display: flex; align-items: stretch; gap: 9px; }
+.social-platform-controls .social-platform-select { flex: 1; cursor: pointer; }
+.social-icon-preview { width: 41px; min-height: 41px; display: grid; place-items: center; flex-shrink: 0; background: #f5f8f1; border: 1px solid #e0e7da; border-radius: 6px; color: #5f7355; }
+.social-icon-preview img { width: 20px; height: 20px; object-fit: contain; }
+.social-icon-fallback { font-size: 16px; font-weight: 500; }
 .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .field-grid .field { margin-bottom: 16px; }
 .field-section { border-top: 1px solid #e8ede7; margin-top: 27px; padding-top: 22px; }

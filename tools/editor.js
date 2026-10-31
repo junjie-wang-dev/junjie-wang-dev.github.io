@@ -11,6 +11,27 @@
     { id: "footer", label: "页脚", icon: "─", eyebrow: "FOOTER", description: "修改主页底部的更新时间与补充说明。" },
   ];
   const state = { content: null, revision: null, active: "profile", dirty: false, saving: false, changes: 0, previewSequence: 0, previewTimer: null, previewController: null, expanded: new Map() };
+  const socialCatalog = { icons: [{ id: "website", label: "个人网站", src: "" }], status: "loading" };
+  const socialUrlHints = {
+    website: "https://example.com",
+    github: "https://github.com/username",
+    googlescholar: "https://scholar.google.com/citations?user=…",
+    linkedin: "https://www.linkedin.com/in/username",
+    x: "https://x.com/username",
+    youtube: "https://www.youtube.com/@username",
+    bluesky: "https://bsky.app/profile/username.bsky.social",
+    mastodon: "https://mastodon.social/@username",
+    instagram: "https://www.instagram.com/username",
+    facebook: "https://www.facebook.com/username",
+    bilibili: "https://space.bilibili.com/用户ID",
+    weibo: "https://weibo.com/用户ID",
+    xiaohongshu: "https://www.xiaohongshu.com/user/profile/用户ID",
+    wechat: "https://mp.weixin.qq.com/…",
+    researchgate: "https://www.researchgate.net/profile/Your-Name",
+    orcid: "https://orcid.org/0000-0000-0000-0000",
+    zhihu: "https://www.zhihu.com/people/username",
+    email: "mailto:you@example.com",
+  };
   const $ = (selector) => document.querySelector(selector);
   const form = $("#content-form");
   let nextFieldId = 0;
@@ -72,6 +93,31 @@
   async function responseError(response) {
     try { const value = await response.json(); return new Error(value.error || `请求失败（${response.status}）`); }
     catch { return new Error(`请求失败（${response.status}）`); }
+  }
+
+  async function loadSocialIcons() {
+    try {
+      const response = await fetch("/api/social-icons", { cache: "no-store" });
+      if (!response.ok) throw await responseError(response);
+      const result = await response.json();
+      if (!Array.isArray(result.icons)) throw new Error("平台列表格式不正确");
+      const icons = new Map([["website", socialCatalog.icons[0]]]);
+      for (const icon of result.icons) {
+        if (!icon || typeof icon.id !== "string" || typeof icon.label !== "string" || ["auto", "none"].includes(icon.id)) continue;
+        let src = "";
+        if (typeof icon.src === "string" && icon.src) {
+          const imageUrl = new URL(icon.src, new URL("/", window.location.href));
+          if (imageUrl.origin === window.location.origin && ["http:", "https:"].includes(imageUrl.protocol)) src = imageUrl.href;
+        }
+        icons.set(icon.id, { id: icon.id, label: icon.label, src });
+      }
+      socialCatalog.icons = [...icons.values()];
+      socialCatalog.status = "ready";
+    } catch {
+      // Link editing remains available even if the optional logo catalog cannot be read.
+      socialCatalog.status = "unavailable";
+    }
+    form.querySelectorAll(".social-platform-select").forEach((select) => select.refreshCatalog());
   }
 
   async function loadContent(confirmDiscard = false) {
@@ -354,7 +400,7 @@
       renderActive();
       const newCard = form.querySelector(`[data-item-path="${[...path, index].join(".")}"]`);
       newCard?.scrollIntoView({ block: "nearest" });
-      newCard?.querySelector("input, textarea, [contenteditable]")?.focus({ preventScroll: true });
+      newCard?.querySelector("input, textarea, select, [contenteditable]")?.focus({ preventScroll: true });
     }));
     section.append(heading);
     if (!list.length) section.append(element("div", "empty-list", options.empty || "还没有内容，点击上方按钮添加。"));
@@ -391,10 +437,87 @@
     parent.append(section);
   }
 
-  function links(parent, path, title = "相关链接") {
-    repeatable(parent, path, { title, addLabel: "添加链接", create: () => ({ label: "", url: "" }), itemLabel: "新链接", render: (body, itemPath) => {
-      field(body, "显示文字", [...itemPath, "label"], { placeholder: "例如：GitHub、[paper]、[doi]" });
-      field(body, "链接地址", [...itemPath, "url"], { url: true, placeholder: "https://… 或 papers/example.pdf" });
+  function socialIconField(parent, path, labelInput, urlInput, updateTitle) {
+    const wrapper = element("div", "field social-platform-field");
+    const id = `field-${++nextFieldId}`;
+    const label = element("label", "field-label", "平台 / Logo");
+    label.htmlFor = id;
+    const controls = element("div", "social-platform-controls");
+    const select = element("select", "social-platform-select");
+    select.id = id;
+    select.dataset.editorPath = [...path, "icon"].join(".");
+    const thumbnail = element("span", "social-icon-preview");
+    thumbnail.setAttribute("aria-hidden", "true");
+    const image = element("img");
+    image.alt = "";
+    image.width = 20;
+    image.height = 20;
+    const fallback = element("span", "social-icon-fallback", "↗");
+    thumbnail.append(image, fallback);
+    const hint = element("span", "field-hint");
+    hint.id = `${id}-hint`;
+    select.setAttribute("aria-describedby", hint.id);
+    controls.append(select, thumbnail);
+    wrapper.append(label, controls, hint);
+    parent.append(wrapper);
+
+    function updatePreview() {
+      const selected = get(path).icon || "auto";
+      const icon = socialCatalog.icons.find((entry) => entry.id === (selected === "auto" ? "website" : selected));
+      const src = selected !== "none" ? icon?.src : "";
+      image.hidden = !src;
+      fallback.hidden = Boolean(src);
+      fallback.textContent = selected === "none" ? "Aa" : "↗";
+      if (src && image.getAttribute("src") !== src) image.src = src;
+      thumbnail.title = selected === "auto" ? "自动识别，效果见右侧预览" : selected === "none" ? "只显示文字" : `${icon?.label || selected} Logo`;
+      urlInput.placeholder = socialUrlHints[selected] || "https://… 或站内路径";
+      hint.textContent = socialCatalog.status === "loading" ? "正在读取平台列表；已有链接仍可编辑。"
+        : socialCatalog.status === "unavailable" ? "平台列表暂时不可用；可自动识别或保留当前设置，效果见右侧预览。"
+        : selected === "auto" ? "根据链接自动识别平台，实际 Logo 效果见右侧预览。"
+        : selected === "none" ? "只显示链接文字，不显示 Logo。"
+        : "使用所选平台 Logo；已有的显示文字和链接地址会保留。";
+    }
+
+    select.refreshCatalog = () => {
+      const selected = get(path).icon || "auto";
+      const icons = [{ id: "auto", label: "自动识别" }, { id: "none", label: "不显示 Logo" }, ...socialCatalog.icons];
+      if (!icons.some((icon) => icon.id === selected)) icons.push({ id: selected, label: `当前设置：${selected}` });
+      select.replaceChildren(...icons.map((icon) => {
+        const option = element("option", "", icon.label);
+        option.value = icon.id;
+        return option;
+      }));
+      select.value = selected;
+      updatePreview();
+    };
+    select.addEventListener("change", () => {
+      const link = get(path);
+      link.icon = select.value;
+      const platform = socialCatalog.icons.find((icon) => icon.id === select.value);
+      if (!link.label.trim() && platform) {
+        link.label = platform.label;
+        labelInput.value = link.label;
+      }
+      updateTitle();
+      updatePreview();
+      changed();
+    });
+    image.addEventListener("error", () => { image.hidden = true; fallback.hidden = false; });
+    select.refreshCatalog();
+  }
+
+  function links(parent, path, title = "相关链接", options = {}) {
+    repeatable(parent, path, { title, addLabel: options.social ? "添加社交媒体" : "添加链接", hint: options.social ? "自动识别平台 Logo，也可以手动选择；支持任意个人链接。" : undefined, create: () => options.social ? ({ label: "", url: "", icon: "auto" }) : ({ label: "", url: "" }), itemLabel: options.social ? "新社交链接" : "新链接", render: (body, itemPath) => {
+      const platform = options.social ? element("div") : null;
+      if (platform) body.append(platform);
+      const updateTitle = () => {
+        if (!options.social) return;
+        const titleNode = body.closest(".item-card")?.querySelector(".item-summary .item-title");
+        if (titleNode) titleNode.textContent = get(itemPath).label || "新社交链接";
+      };
+      const labelInput = field(body, "显示文字", [...itemPath, "label"], { placeholder: options.social ? "例如：GitHub、Google Scholar、微博" : "例如：GitHub、[paper]、[doi]", onInput: updateTitle });
+      const urlInput = field(body, "链接地址", [...itemPath, "url"], { url: true, placeholder: "https://… 或 papers/example.pdf" });
+      if (options.social) socialIconField(platform, itemPath, labelInput, urlInput, updateTitle);
     } });
   }
 
@@ -473,7 +596,7 @@
       field(body, "名称", [...path, "label"], { placeholder: "例如：Email、Based" });
       field(body, "内容", [...path, "value"]);
     } });
-    links(root, ["profile", "links"], "个人主页链接");
+    links(root, ["profile", "links"], "社交媒体与个人链接", { social: true });
   }
 
   function renderProjects(root) {
@@ -549,5 +672,6 @@
   window.addEventListener("beforeunload", (event) => { if (state.dirty) { event.preventDefault(); event.returnValue = ""; } });
   document.addEventListener("keydown", (event) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") { event.preventDefault(); saveContent(); } });
   updateNav();
+  loadSocialIcons();
   loadContent();
 })();

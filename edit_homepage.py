@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parent
 CONTENT_PATH = ROOT / "content.json"
 INDEX_PATH = ROOT / "index.html"
 TEMPLATE_PATH = ROOT / "templates" / "homepage.html"
+SOCIAL_ICONS_PATH = ROOT / "tools" / "social-icons.json"
 STATE_LOCK = threading.RLock()
 MAX_REQUEST_BYTES = 15 * 1024 * 1024
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
@@ -32,6 +33,54 @@ MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
 class ConflictError(ValueError):
     """The source changed since the editor last loaded it."""
+
+
+def load_social_icons():
+    return json.loads(SOCIAL_ICONS_PATH.read_text(encoding="utf-8"))["icons"]
+
+
+SOCIAL_DOMAINS = {
+    "github": ("github.com",),
+    "googlescholar": ("scholar.google.com", "scholar.google.com.hk", "scholar.google.co.uk", "scholar.google.cn", "scholar.google.de", "scholar.google.se"),
+    "linkedin": ("linkedin.com", "lnkd.in"),
+    "x": ("x.com", "twitter.com"),
+    "youtube": ("youtube.com", "youtu.be"),
+    "bluesky": ("bsky.app", "bsky.social"),
+    "mastodon": ("mastodon.social", "mastodon.online", "mstdn.social", "fosstodon.org"),
+    "instagram": ("instagram.com",),
+    "facebook": ("facebook.com", "fb.com"),
+    "bilibili": ("bilibili.com", "b23.tv"),
+    "weibo": ("weibo.com", "weibo.cn"),
+    "xiaohongshu": ("xiaohongshu.com", "xhslink.com"),
+    "wechat": ("weixin.qq.com", "wechat.com"),
+    "researchgate": ("researchgate.net",),
+    "orcid": ("orcid.org",),
+    "zhihu": ("zhihu.com",),
+}
+
+
+def infer_social_icon(link):
+    """Use an explicit choice or recognize a platform from its actual hostname."""
+    icons = {icon["id"]: icon for icon in load_social_icons()}
+    selected = link.get("icon", "auto")
+    if selected == "none" or selected in icons:
+        return selected
+    url = link.get("url", "").strip()
+    parts = urlsplit(url)
+    if parts.scheme.lower() == "mailto":
+        return "email"
+    host = (parts.hostname or "").lower().rstrip(".")
+    for icon, domains in SOCIAL_DOMAINS.items():
+        if icon in icons and any(host == domain or host.endswith("." + domain) for domain in domains):
+            return icon
+    if not url:
+        label = re.sub(r"[\s_/-]+", "", link.get("label", "").casefold())
+        aliases = {"twitter": "x", "推特": "x", "谷歌学术": "googlescholar", "b站": "bilibili", "邮箱": "email"}
+        for key, icon in icons.items():
+            aliases[re.sub(r"[\s_/-]+", "", icon["label"].casefold())] = key
+            aliases[key] = key
+        return aliases.get(label, "website")
+    return "website"
 
 
 def validate_url(value, image=False):
@@ -164,11 +213,18 @@ def validate_content(content):
             result[key] = dimension
         return result
 
-    def link_array(value, path):
+    def link_array(value, path, social=False):
         result = []
+        allowed_icons = {icon["id"] for icon in load_social_icons()} | {"auto", "none"} if social else set()
         for item in array(value, path):
             item = obj(item, path)
-            result.append({"label": field(item, "label", path), "url": field(item, "url", path, url=True)})
+            output = {"label": field(item, "label", path), "url": field(item, "url", path, url=True)}
+            if social:
+                icon = item.get("icon", "auto")
+                if not isinstance(icon, str) or icon not in allowed_icons:
+                    raise ValueError("社交媒体 Logo 无效，请在编辑器中选择平台、自动识别或不显示 Logo。")
+                output["icon"] = icon
+            result.append(output)
         return result
 
     content = obj(content, "内容")
@@ -180,7 +236,7 @@ def validate_content(content):
     result["profile"] = text_fields(profile, ("name", "role", "affiliation"), "profile")
     result["profile"]["image"] = image_field(profile.get("image"), "profile.image")
     result["profile"]["contacts"] = [text_fields(c, ("label", "value"), "联系方式") for c in array(profile.get("contacts"), "联系方式")]
-    result["profile"]["links"] = link_array(profile.get("links"), "个人链接")
+    result["profile"]["links"] = link_array(profile.get("links"), "个人链接", social=True)
     bio = obj(content.get("bio"), "bio")
     result["bio"] = {"title": field(bio, "title", "bio"), "paragraphs": rich_array(bio, "paragraphs", "bio")}
     for key in ("projects", "publications", "earlierWork"):
@@ -211,6 +267,17 @@ def render_page(content):
     def links(items):
         return "\n".join('<a href="{}">{}</a>'.format(esc(link["url"]), esc(link["label"])) for link in items)
 
+    def social_links(items):
+        icons = {icon["id"]: icon for icon in load_social_icons()}
+        output = []
+        for link in items:
+            icon_id = infer_social_icon(link)
+            logo = ""
+            if icon_id in icons:
+                logo = '<img class="social-icon" src="{}" alt="" aria-hidden="true" width="16" height="16" />'.format(esc(icons[icon_id]["src"]))
+            output.append('<a href="{}">{}{}</a>'.format(esc(link["url"]), logo, esc(link["label"])))
+        return "\n".join(output)
+
     def image(value, css, lazy=True):
         if not value["src"]:
             return ""
@@ -228,7 +295,7 @@ def render_page(content):
           <dl class="contact-list">{contacts}</dl>
           <nav class="profile-links" aria-label="Profile links">{links}</nav>
         </div>
-      </header>'''.format(photo_class="" if profile["image"]["src"] else " without-photo", photo=image(profile["image"], "profile-photo", False), name=esc(profile["name"]), role=esc(profile["role"]), affiliation=esc(profile["affiliation"]), contacts=contacts, links=links(profile["links"]))
+      </header>'''.format(photo_class="" if profile["image"]["src"] else " without-photo", photo=image(profile["image"], "profile-photo", False), name=esc(profile["name"]), role=esc(profile["role"]), affiliation=esc(profile["affiliation"]), contacts=contacts, links=social_links(profile["links"]))
 
     def section(css, heading_id, title, body):
         return '      <section class="{}" aria-labelledby="{}">\n        <h2 id="{}">{}</h2>\n{}\n      </section>'.format(css, heading_id, heading_id, esc(title), body)
@@ -280,7 +347,7 @@ def load_content():
 
 def revision():
     digest = hashlib.sha256()
-    for path in (CONTENT_PATH, INDEX_PATH, TEMPLATE_PATH):
+    for path in (CONTENT_PATH, INDEX_PATH, TEMPLATE_PATH, SOCIAL_ICONS_PATH):
         digest.update(path.name.encode("utf-8") + b"\x00")
         digest.update(path.read_bytes() if path.exists() else b"")
         digest.update(b"\x00")
@@ -379,6 +446,12 @@ class EditorHandler(BaseHTTPRequestHandler):
             self.respond(403, {"error": "仅支持本机访问。"})
             return
         route = unquote(urlsplit(self.path).path)
+        if route == "/api/social-icons":
+            try:
+                self.respond(200, {"icons": load_social_icons(), "defaultIcon": "auto"})
+            except (ValueError, OSError) as error:
+                self.respond(500, {"error": str(error)})
+            return
         if route == "/api/content":
             try:
                 with STATE_LOCK:

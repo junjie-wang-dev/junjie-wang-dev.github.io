@@ -28,6 +28,14 @@ python3 edit_homepage.py
 - 论文链接可以填写 `papers/example.pdf` 或完整网址；个人链接也支持 `mailto:`、`tel:`。
 - SEO 和分享设置独立于页面正文，修改姓名、研究方向后可以一并更新这些字段。
 
+## 添加社交媒体
+
+在「个人信息」中找到「社交媒体与个人链接」，点击「添加社交媒体」，选择「平台 / Logo」，再填写显示文字和个人主页链接。保存后，链接会带着对应 Logo 出现在原来的 GitHub 一栏；已有的 Google Scholar 和 GitHub 链接也会自动显示图标。
+
+支持 GitHub、Google Scholar、LinkedIn、X / Twitter、YouTube、Bluesky、Mastodon、Instagram、Facebook、哔哩哔哩、微博、小红书、微信、ResearchGate、ORCID、知乎，以及邮箱和个人网站。选择「自动识别」时根据链接网址匹配 Logo；未识别的平台使用网站图标，也可以选择「不显示 Logo」。Mastodon 等使用自定义域名的平台可直接手动选择 Logo。显示文字仍可自由修改，条目支持增删和排序。
+
+Logo 是仓库内的 SVG 文件，随主页一起发布，无需外部图标服务。图标来源说明见 [images/social/README.md](images/social/README.md)。
+
 ## 文件说明
 
 | 文件 | 用途 |

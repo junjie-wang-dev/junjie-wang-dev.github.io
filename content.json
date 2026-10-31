@@ -30,11 +30,18 @@
     "links": [
       {
         "label": "Google Scholar",
-        "url": "https://scholar.google.com/citations?user=HgEezt8AAAAJ&hl=en&oi=ao"
+        "url": "https://scholar.google.com/citations?user=HgEezt8AAAAJ&hl=en&oi=ao",
+        "icon": "auto"
       },
       {
         "label": "GitHub",
-        "url": "https://github.com/junjie-wang-dev"
+        "url": "https://github.com/junjie-wang-dev",
+        "icon": "auto"
+      },
+      {
+        "label": "X",
+        "url": "https://x.com/junjie_ml",
+        "icon": "auto"
       }
     ]
   },

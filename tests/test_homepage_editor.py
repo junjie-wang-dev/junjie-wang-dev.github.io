@@ -11,10 +11,12 @@ import http.client
 import json
 from pathlib import Path
 import re
+import shutil
 import tempfile
 import threading
 import unittest
 from unittest import mock
+import xml.etree.ElementTree as ET
 
 import edit_homepage as editor
 
@@ -28,6 +30,7 @@ class PageInventory(HTMLParser):
         self.text = []
         self.links = []
         self.images = []
+        self.social_images = []
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
@@ -38,7 +41,10 @@ class PageInventory(HTMLParser):
         if tag == "a":
             self.links.append(attrs.get("href", ""))
         elif tag == "img":
-            self.images.append(tuple(attrs.get(key) for key in ("src", "alt", "width", "height")))
+            if "social-icon" in attrs.get("class", "").split():
+                self.social_images.append(attrs)
+            else:
+                self.images.append(tuple(attrs.get(key) for key in ("src", "alt", "width", "height")))
 
     def handle_endtag(self, tag):
         if tag == "main":
@@ -62,6 +68,7 @@ class EditorTestCase(unittest.TestCase):
         cls.fixture = copy.deepcopy(editor.load_content())
         cls.original_index = Path(editor.INDEX_PATH).read_text(encoding="utf-8")
         cls.template = Path(editor.TEMPLATE_PATH).read_text(encoding="utf-8")
+        cls.social_catalog = json.loads(Path(editor.SOCIAL_ICONS_PATH).read_text(encoding="utf-8"))
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -70,8 +77,12 @@ class EditorTestCase(unittest.TestCase):
         self.content_path = self.root / "content.json"
         self.index_path = self.root / "index.html"
         self.template_path = self.root / "templates" / "homepage.html"
+        self.social_icons_path = self.root / "tools" / "social-icons.json"
         self.template_path.parent.mkdir()
+        self.social_icons_path.parent.mkdir()
         self.template_path.write_text(self.template, encoding="utf-8")
+        self.social_icons_path.write_text(json.dumps(self.social_catalog, ensure_ascii=False), encoding="utf-8")
+        shutil.copytree(self.fixture_root / "images" / "social", self.root / "images" / "social")
         self.content_path.write_text(json.dumps(self.fixture, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         self.index_path.write_text(self.original_index, encoding="utf-8")
         self.content = copy.deepcopy(self.fixture)
@@ -81,6 +92,7 @@ class EditorTestCase(unittest.TestCase):
             CONTENT_PATH=self.content_path,
             INDEX_PATH=self.index_path,
             TEMPLATE_PATH=self.template_path,
+            SOCIAL_ICONS_PATH=self.social_icons_path,
         )
         self.patches.start()
         self.addCleanup(self.patches.stop)
@@ -302,6 +314,123 @@ class HttpTests(EditorTestCase):
         self.assertEqual((self.root / src).read_bytes(), png)
         status, _, _ = self.request("POST", "/api/upload", {"name": "bad.svg", "data": base64.b64encode(b"<svg onload='alert(1)'/>").decode("ascii")})
         self.assertIn(status, (400, 415))
+
+    def test_social_icon_catalog_is_read_only_and_uses_local_svg_files(self):
+        before = self.disk_state()
+        status, _, body = self.request("GET", "/api/social-icons", origin=False)
+        self.assertEqual(status, 200)
+        icons = json.loads(body)["icons"]
+        self.assertEqual(icons, self.social_catalog["icons"])
+        identifiers = set()
+        for icon in icons:
+            with self.subTest(icon=icon["id"]):
+                self.assertNotIn(icon["id"], identifiers)
+                identifiers.add(icon["id"])
+                self.assertTrue(icon["label"])
+                self.assertEqual(icon["src"], "images/social/{}.svg".format(icon["id"]))
+                path = self.root / icon["src"]
+                self.assertTrue(path.is_file())
+                self.assertEqual(ET.fromstring(path.read_bytes()).tag, "{http://www.w3.org/2000/svg}svg")
+        self.assertTrue({"github", "googlescholar", "linkedin", "website"}.issubset(identifiers))
+        status, headers, svg = self.request("GET", "/images/social/github.svg", origin=False)
+        self.assertEqual(status, 200)
+        self.assertIn("image/svg+xml", headers.get("Content-Type", ""))
+        self.assertEqual(svg, (self.root / "images/social/github.svg").read_bytes())
+        self.assertEqual(self.disk_state(), before)
+
+
+class SocialIconTests(EditorTestCase):
+    def profile_page(self, links):
+        self.content["profile"]["links"] = links
+        page = editor.render_page(self.content)
+        inventory = PageInventory()
+        inventory.feed(page)
+        return page, inventory
+
+    def test_legacy_links_infer_known_platforms_from_hosts(self):
+        cases = (
+            ("https://github.com/researcher", "GitHub", "github"),
+            ("https://docs.github.com/en", "任意名称", "github"),
+            ("https://scholar.google.com/citations?user=test", "我的论文", "googlescholar"),
+            ("https://www.linkedin.com/in/researcher", "联系我", "linkedin"),
+            ("mailto:test@example.org", "Email", "email"),
+            ("https://github.com.evil.example/person", "GitHub", "website"),
+            ("https://notgithub.com/person", "GitHub", "website"),
+            ("https://github.com@evil.example/person", "GitHub", "website"),
+            ("https://example.org/?next=https://github.com", "Google Scholar", "website"),
+        )
+        for url, label, expected in cases:
+            with self.subTest(url=url):
+                self.assertEqual(editor.infer_social_icon({"label": label, "url": url}), expected)
+
+    def test_auto_icon_follows_url_changes_while_custom_label_is_preserved(self):
+        link = {"label": "我的研究入口", "url": "https://github.com/person", "icon": "auto"}
+        _, initial = self.profile_page([link])
+        self.assertEqual(initial.social_images[0]["src"], "images/social/github.svg")
+        link["url"] = "https://www.linkedin.com/in/person"
+        _, updated = self.profile_page([link])
+        self.assertEqual(updated.social_images[0]["src"], "images/social/linkedin.svg")
+        self.assertIn("我的研究入口", updated.visible_text())
+
+    def test_explicit_icon_selection_survives_save_and_overrides_url(self):
+        self.content["profile"]["links"] = [{"label": "自定义入口", "url": "https://example.org/research", "icon": "github"}]
+        saved = editor.save_content(self.content, editor.revision())
+        link = editor.load_content()["profile"]["links"][0]
+        self.assertEqual(link, self.content["profile"]["links"][0])
+        self.assertEqual(saved["content"]["profile"]["links"][0]["icon"], "github")
+        self.assertEqual(editor.infer_social_icon(link), "github")
+        _, inventory = self.profile_page([link])
+        self.assertEqual(inventory.social_images[0]["src"], "images/social/github.svg")
+
+    def test_explicit_none_keeps_link_text_without_a_decorative_icon(self):
+        link = {"label": "代码与资料", "url": "https://github.com/person", "icon": "none"}
+        _, inventory = self.profile_page([link])
+        self.assertEqual(editor.infer_social_icon(link), "none")
+        self.assertEqual(inventory.social_images, [])
+        self.assertIn(link["label"], inventory.visible_text())
+        self.assertIn(link["url"], inventory.links)
+        self.assertEqual(editor.validate_content(self.content)["profile"]["links"][0]["icon"], "none")
+
+    def test_unknown_icon_ids_are_rejected_without_saving(self):
+        before = self.disk_state()
+        for icon in ("not-a-supported-platform", "../github", 'github\" onerror=\"alert(1)'):
+            with self.subTest(icon=icon):
+                self.content["profile"]["links"] = [{"label": "Link", "url": "https://example.org", "icon": icon}]
+                with self.assertRaises(ValueError):
+                    editor.save_content(self.content, editor.revision())
+                self.assertEqual(self.disk_state(), before)
+
+    def test_decorative_icon_has_accessibility_attributes_and_escaped_link_text(self):
+        link = {"label": 'Code & <research> "links"', "url": 'https://github.com/person?value="quoted"&x=1'}
+        page, inventory = self.profile_page([link])
+        self.assertIn(html.escape(link["label"], quote=True), page)
+        self.assertIn('href="{}"'.format(html.escape(link["url"], quote=True)), page)
+        self.assertIn(link["url"], inventory.links)
+        self.assertEqual(len(inventory.social_images), 1)
+        icon = inventory.social_images[0]
+        self.assertEqual(icon["src"], "images/social/github.svg")
+        self.assertEqual(icon["alt"], "")
+        self.assertEqual(icon["aria-hidden"], "true")
+        self.assertEqual((icon["width"], icon["height"]), ("16", "16"))
+
+    def test_project_and_publication_links_do_not_receive_profile_icons(self):
+        _, inventory = self.profile_page([])
+        self.assertEqual(inventory.social_images, [])
+        project_urls = [link["url"] for project in self.content["projects"]["items"] for link in project["links"]]
+        publication_urls = [link["url"] for publication in self.content["publications"]["items"] for link in publication["links"]]
+        self.assertTrue(project_urls)
+        self.assertTrue(publication_urls)
+        self.assertTrue(all(url in inventory.links for url in project_urls + publication_urls))
+
+    def test_catalog_change_invalidates_an_older_editor_revision(self):
+        stale_revision = editor.revision()
+        before = self.disk_state()
+        with self.social_icons_path.open("a", encoding="utf-8") as stream:
+            stream.write("\n")
+        self.assertNotEqual(editor.revision(), stale_revision)
+        with self.assertRaises(editor.ConflictError):
+            editor.save_content(self.content, stale_revision)
+        self.assertEqual(self.disk_state(), before)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,94 @@
+{
+  "icons": [
+    {
+      "id": "github",
+      "label": "GitHub",
+      "src": "images/social/github.svg"
+    },
+    {
+      "id": "googlescholar",
+      "label": "Google Scholar",
+      "src": "images/social/googlescholar.svg"
+    },
+    {
+      "id": "linkedin",
+      "label": "LinkedIn",
+      "src": "images/social/linkedin.svg"
+    },
+    {
+      "id": "x",
+      "label": "X / Twitter",
+      "src": "images/social/x.svg"
+    },
+    {
+      "id": "youtube",
+      "label": "YouTube",
+      "src": "images/social/youtube.svg"
+    },
+    {
+      "id": "bluesky",
+      "label": "Bluesky",
+      "src": "images/social/bluesky.svg"
+    },
+    {
+      "id": "mastodon",
+      "label": "Mastodon",
+      "src": "images/social/mastodon.svg"
+    },
+    {
+      "id": "instagram",
+      "label": "Instagram",
+      "src": "images/social/instagram.svg"
+    },
+    {
+      "id": "facebook",
+      "label": "Facebook",
+      "src": "images/social/facebook.svg"
+    },
+    {
+      "id": "bilibili",
+      "label": "哔哩哔哩",
+      "src": "images/social/bilibili.svg"
+    },
+    {
+      "id": "weibo",
+      "label": "微博",
+      "src": "images/social/weibo.svg"
+    },
+    {
+      "id": "xiaohongshu",
+      "label": "小红书",
+      "src": "images/social/xiaohongshu.svg"
+    },
+    {
+      "id": "wechat",
+      "label": "微信",
+      "src": "images/social/wechat.svg"
+    },
+    {
+      "id": "researchgate",
+      "label": "ResearchGate",
+      "src": "images/social/researchgate.svg"
+    },
+    {
+      "id": "orcid",
+      "label": "ORCID",
+      "src": "images/social/orcid.svg"
+    },
+    {
+      "id": "zhihu",
+      "label": "知乎",
+      "src": "images/social/zhihu.svg"
+    },
+    {
+      "id": "email",
+      "label": "邮箱",
+      "src": "images/social/email.svg"
+    },
+    {
+      "id": "website",
+      "label": "个人网站",
+      "src": "images/social/website.svg"
+    }
+  ]
+}
